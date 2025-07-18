@@ -7,6 +7,11 @@
   <title>Notes - Learning AI</title>
   <link rel="stylesheet" href="css/Learning_AI_Styles.css" />
   <style>
+    :root {
+      --primary-color: #f0f0f0;
+      --secondary-color: #ffffff;
+    }
+
     body {
       background-color: var(--primary-color);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -139,7 +144,16 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <script defer>
+
+  <script>
+    // 🌗 Apply theme from localStorage (set in Settings page)
+    document.addEventListener("DOMContentLoaded", () => {
+      const primary = localStorage.getItem("primaryColor") || "#f0f0f0";
+      const secondary = localStorage.getItem("secondaryColor") || "#ffffff";
+      document.documentElement.style.setProperty('--primary-color', primary);
+      document.documentElement.style.setProperty('--secondary-color', secondary);
+    });
+
     async function simplifyNotes() {
       const notesInput = document.getElementById("notesInput");
       if (!notesInput) return;
@@ -265,5 +279,4 @@
     </div>
   </main>
 </body>
-
 </html>
