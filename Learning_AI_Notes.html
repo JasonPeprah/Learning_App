@@ -1,269 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notes - Learning AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learning AI - Questions</title>
   <link rel="stylesheet" href="css/Learning_AI_Styles.css" />
   <style>
     body {
-      background-color: var(--primary-color);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: var(--primary-color, #f0f0f0);
+      margin: 0;
+      padding: 1rem;
       color: #333;
-      padding: 2rem;
     }
-
     .tabs {
       display: flex;
       justify-content: center;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
+      background-color: var(--secondary-color, #ffffff);
+      padding: 0.75rem 0;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      gap: 1rem;
     }
-
-    .tabs a {
+    .tab-button {
       padding: 0.5rem 1rem;
-      background-color: var(--secondary-color);
-      border-radius: 1rem;
-      text-decoration: none;
+      border: none;
+      border-radius: 20px;
+      background-color: var(--primary-color, #ddd);
       color: #000;
+      cursor: pointer;
       font-weight: bold;
-      transition: background-color 0.3s;
     }
-
-    .tabs a:hover {
-      background-color: #ddd;
+    .tab-button:hover {
+      background-color: #bbb;
     }
-
-    .notes-container {
-      max-width: 1000px;
+    .container {
+      max-width: 900px;
       margin: auto;
-      padding: 2rem;
-      background-color: var(--secondary-color);
-      border-radius: 1.5rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      background-color: var(--secondary-color, #ffffff);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-
     h1 {
       text-align: center;
-      margin-bottom: 2rem;
-      color: #222;
+      margin-bottom: 1.2rem;
     }
-
+    .mode-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .mode-button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 20px;
+      background-color: var(--primary-color, #ddd);
+      color: #000;
+      cursor: pointer;
+    }
+    .mode-button.active {
+      background-color: #4caf50;
+      color: white;
+    }
     textarea {
       width: 100%;
-      height: 180px;
-      padding: 1rem;
+      height: 150px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
       font-size: 1rem;
-      border-radius: 0.75rem;
       border: 1px solid #ccc;
-      margin-bottom: 1rem;
-      resize: vertical;
+      border-radius: 8px;
     }
-
-    select,
-    button,
-    input[type="file"] {
-      display: block;
-      margin: 0.75rem 0;
-      padding: 0.6rem 1.2rem;
+    button.generate-btn {
+      padding: 0.75rem 1.5rem;
       font-size: 1rem;
-      border-radius: 0.5rem;
+      background-color: var(--primary-color, #007bff);
+      color: white;
       border: none;
-      background-color: #f0f0f0;
-      transition: background-color 0.2s;
-    }
-
-    button:hover,
-    select:hover,
-    input[type="file"]:hover {
-      background-color: #e0e0e0;
-    }
-
-    button {
-      background-color: var(--primary-color);
-      color: #fff;
+      border-radius: 8px;
       cursor: pointer;
     }
-
-    button:hover {
-      background-color: #005fa3;
+    button.generate-btn:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
     }
-
-    .history-item {
-      background: #f9f9f9;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      border: 1px solid #ddd;
-    }
-
-    .section-title {
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin: 1.5rem 0 0.5rem;
-      color: #444;
-    }
-
-    #simplifiedOutput {
-      background: #fff;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #ddd;
-      min-height: 100px;
-    }
-
-    .tip-box {
-      background-color: #fff8e1;
-      border-left: 5px solid #ffc107;
-      padding: 1rem;
+    .results {
       margin-top: 2rem;
-      border-radius: 0.5rem;
+      padding: 1rem;
+      background-color: var(--primary-color, #f9f9f9);
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+    .optional-tip {
+      margin-top: 1rem;
+      font-style: italic;
       font-size: 0.95rem;
-    }
-
-    #loadingSpinner {
-      display: none;
-      margin: 1rem auto;
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid var(--primary-color);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      color: #555;
     }
   </style>
-  <script defer>
-    async function simplifyNotes() {
-      const notesInput = document.getElementById("notesInput");
-      if (!notesInput) return;
 
-      const text = notesInput.value.trim();
-      const mode = document.getElementById("simplifyMode")?.value || "bullet";
-      const strength = document.getElementById("simplifyStrength")?.value || "medium";
+  <script>
+    // Apply theme from localStorage
+    document.addEventListener("DOMContentLoaded", () => {
+      const primary = localStorage.getItem("primaryColor") || "#f0f0f0";
+      const secondary = localStorage.getItem("secondaryColor") || "#ffffff";
+      document.documentElement.style.setProperty('--primary-color', primary);
+      document.documentElement.style.setProperty('--secondary-color', secondary);
+    });
 
-      if (!text) {
-        alert("Please enter some notes first.");
+    let selectedMode = 'theory';
+    let lastQuestions = "";
+
+    function switchMode(button) {
+      const buttons = document.querySelectorAll('.mode-button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      selectedMode = button.dataset.mode;
+      document.getElementById('generateBtn').disabled = false;
+      document.getElementById('generateAnswerBtn').disabled = true;
+      document.getElementById('questionResults').innerHTML = '';
+    }
+
+    function getPromptPrefix(mode) {
+      switch (mode) {
+        case 'objectives':
+          return 'Generate exactly 10 multiple-choice objective questions (numbered 1 to 10) with options A-D and answers hidden.';
+        case 'flashcards':
+          return 'Generate exactly 10 flashcards with "Q:" for each question and "A:" for each answer.';
+        default:
+          return 'Generate exactly 10 theory questions only (numbered 1 to 10).';
+      }
+    }
+
+    async function generateQuestions() {
+      const inputElement = document.getElementById("questionInput");
+      const resultElement = document.getElementById("questionResults");
+
+      if (!inputElement || !resultElement) {
+        console.error("Required input or result element not found.");
         return;
       }
 
-      const prompt = `Simplify the following notes in ${mode} format with ${strength} simplification:\n\n${text}`;
-      const output = document.getElementById("simplifiedOutput");
-      const spinner = document.getElementById("loadingSpinner");
+      const input = inputElement.value.trim();
+      if (input === "") {
+        resultElement.innerHTML = "❗ Please enter or upload some content to generate questions.";
+        return;
+      }
 
-      spinner.style.display = "block";
-      output.innerText = "";
+      resultElement.innerHTML = "⏳ Generating questions... Please wait.";
 
       try {
-        const response = await fetch("https://api.cohere.ai/v1/chat", {
+        const promptPrefix = getPromptPrefix(selectedMode);
+        const response = await fetch("https://api.cohere.ai/v1/generate", {
           method: "POST",
           headers: {
-            Authorization: "Bearer dSKwSBDxZy0gQsB6pdK09IBHPqmr8j0pg2v38r3t",
+            "Authorization": "Bearer dSKwSBDxZy0gQsB6pdK09IBHPqmr8j0pg2v38r3t",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             model: "command-r-plus",
-            message: prompt,
+            prompt: `${promptPrefix}\n\nContent:\n${input}`,
+            max_tokens: 800,
+            temperature: 0.7,
           }),
         });
 
-        const result = await response.json();
-        output.innerText = result.text || "No response received.";
+        const data = await response.json();
+        const questions = data.generations?.[0]?.text?.trim();
+        if (questions) {
+          lastQuestions = questions;
+          resultElement.innerHTML = `<div><strong>Questions:</strong><br><br>${questions.replace(/\n/g, '<br>')}</div>`;
+          document.getElementById('generateAnswerBtn').disabled = false;
+        } else {
+          resultElement.innerHTML = "⚠️ No questions generated.";
+        }
       } catch (error) {
-        output.innerText = "An error occurred while simplifying notes.";
         console.error(error);
-      } finally {
-        spinner.style.display = "none";
+        resultElement.innerHTML = "❌ An error occurred while generating questions.";
       }
     }
 
-    function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        document.getElementById("notesInput").value = e.target.result;
-      };
-      reader.readAsText(file);
-    }
+    async function generateAnswers() {
+      const resultElement = document.getElementById("questionResults");
+      if (!lastQuestions) {
+        resultElement.innerHTML = "❗ No questions available to generate answers.";
+        return;
+      }
 
-    function handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const image = new Image();
-        image.src = e.target.result;
-        image.onload = async () => {
-          const { createWorker } = await import("https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js");
-          const worker = await createWorker();
-          await worker.load();
-          await worker.loadLanguage("eng");
-          await worker.initialize("eng");
-          const {
-            data: { text },
-          } = await worker.recognize(image);
-          document.getElementById("notesInput").value = text;
-          await worker.terminate();
-        };
-      };
-      reader.readAsDataURL(file);
+      resultElement.innerHTML += "<br><br>⏳ Generating answers... Please wait.";
+
+      try {
+        let answerPrompt;
+        if (selectedMode === 'objectives') {
+          answerPrompt = `Provide the correct options (A-D) for each of the following objective questions. List them as 1. A, 2. B, etc.\n\n${lastQuestions}`;
+        } else if (selectedMode === 'flashcards') {
+          answerPrompt = `Extract and clearly list the answers (A:) for each of the flashcard questions (Q:) below. Keep the formatting clear.\n\n${lastQuestions}`;
+        } else {
+          answerPrompt = `Provide brief (1-2 sentences) answers to each of the following 10 theory questions. Make sure to include answers for questions 9 and 10 explicitly.\n\n${lastQuestions}`;
+        }
+
+        const response = await fetch("https://api.cohere.ai/v1/generate", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer dSKwSBDxZy0gQsB6pdK09IBHPqmr8j0pg2v38r3t",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "command-r-plus",
+            prompt: answerPrompt,
+            max_tokens: 800,
+            temperature: 0.7,
+          }),
+        });
+
+        const data = await response.json();
+        const answers = data.generations?.[0]?.text?.trim();
+
+        if (answers) {
+          resultElement.innerHTML += `<br><br><strong>Answers:</strong><br><br>${answers.replace(/\n/g, '<br>')}`;
+        } else {
+          resultElement.innerHTML += "<br>⚠️ No answers generated.";
+        }
+      } catch (error) {
+        console.error(error);
+        resultElement.innerHTML += "<br>❌ An error occurred while generating answers.";
+      }
     }
   </script>
 </head>
-
 <body>
   <div class="tabs">
-    <a href="index.html">AI</a>
-    <a href="Learning_AI_Notes.html">Notes</a>
-    <a href="Learning_AI_Questions.html">Questions</a>
-    <a href="Learning_AI_Settings.html">Settings</a>
+    <button class="tab-button" onclick="location.href='index.html'">AI</button>
+    <button class="tab-button" onclick="location.href='Learning_AI_Notes.html'">Notes</button>
+    <button class="tab-button" onclick="location.href='Learning_AI_Questions.html'">Questions</button>
+    <button class="tab-button" onclick="location.href='Learning_AI_Settings.html'">Settings</button>
   </div>
 
-  <main class="notes-container">
-    <h1>Learning AI - Notes Simplifier</h1>
+  <div class="container">
+    <h1>Learning AI - Questions</h1>
 
-    <label for="simplifyMode" class="section-title">Simplification Mode</label>
-    <select id="simplifyMode">
-      <option value="bullet">Bullet Points</option>
-      <option value="paragraph">Paragraph Summary</option>
-      <option value="highlight">Highlight Key Terms</option>
-    </select>
-
-    <label for="simplifyStrength" class="section-title">Simplification Strength</label>
-    <select id="simplifyStrength">
-      <option value="light">Light</option>
-      <option value="medium">Medium</option>
-      <option value="strong">Very Simple</option>
-    </select>
-
-    <label for="notesInput" class="section-title">Your Notes</label>
-    <textarea id="notesInput" placeholder="Type, paste, or drag and drop your notes here..."></textarea>
-
-    <input type="file" accept=".txt,.pdf,.docx,.pptx,.md,.jpg,.jpeg,.png" onchange="handleFileUpload(event)" />
-    <button onclick="document.getElementById('cameraInput').click()">Take a Picture</button>
-    <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" style="display: none;" id="cameraInput" />
-
-    <button onclick="simplifyNotes()">Simplify Notes</button>
-
-    <div id="loadingSpinner"></div>
-
-    <label class="section-title">Simplified Notes</label>
-    <div id="simplifiedOutput"></div>
-
-    <label class="section-title">Previous Notes History</label>
-    <div id="notesHistory"></div>
-
-    <div class="tip-box">
-      💡 <strong>Tip:</strong> You can drag and drop .txt, .pdf, .docx, .pptx, .md files or images (like handwritten notes) directly into the input area to simplify them instantly.
+    <div class="mode-selector">
+      <button class="mode-button active" data-mode="theory" onclick="switchMode(this)">Theory</button>
+      <button class="mode-button" data-mode="objectives" onclick="switchMode(this)">Objectives</button>
+      <button class="mode-button" data-mode="flashcards" onclick="switchMode(this)">Flashcards</button>
     </div>
-  </main>
-</body>
 
+    <textarea id="questionInput" placeholder="Enter topic or paste content here..."></textarea>
+
+    <button class="generate-btn" id="generateBtn" onclick="generateQuestions()" disabled>Generate Questions</button>
+    <button class="generate-btn" id="generateAnswerBtn" onclick="generateAnswers()" disabled>Generate Answers</button>
+
+    <div class="optional-tip">💡 Tip: You can drag and drop .pdf, .docx, .pptx, .txt, or .md files into this area too.</div>
+
+    <div class="results" id="questionResults"></div>
+  </div>
+</body>
 </html>
