@@ -193,6 +193,10 @@
         const reply = data.choices?.[0]?.message?.content || "No response.";
         responseBox.textContent = reply;
         saveToHistory("AI: " + reply);
+
+        // clear image preview and uploaded content after answer is given
+        uploadedContent = "";
+        document.getElementById("preview").innerHTML = "";
       } catch (err) {
         responseBox.textContent = `An error occurred: ${err.message}`;
       }
@@ -224,7 +228,6 @@
       reader.readAsDataURL(file);
 
       Tesseract.recognize(file, "eng").then(({ data: { text } }) => {
-        document.getElementById("inputText").value = text;
         uploadedContent = text;
       });
     }
