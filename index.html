@@ -109,12 +109,6 @@
       padding-top: 1rem;
       font-size: 1.05rem;
     }
-
-    .preview-img {
-      max-width: 100%;
-      border-radius: 0.5rem;
-      margin-top: 1rem;
-    }
   </style>
 </head>
 
@@ -140,10 +134,9 @@
         </label>
         <label>
           Upload Image
-          <input type="file" accept="image/*" capture="environment" onchange="handleImageFor4o(event)" />
+          <input type="file" accept="image/*" capture="environment" onchange="handleImage(event)" />
         </label>
       </div>
-      <img id="preview" class="preview-img" style="display:none" />
       <div class="response" id="response"></div>
     </div>
   </main>
@@ -176,7 +169,12 @@
           })
         });
 
-        if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+        if (!response.ok) {
+          const errorDetails = await response.text();
+          console.error(`HTTP ${response.status}:`, errorDetails);
+          throw new Error(`Server responded with ${response.status}`);
+        }
+
         const data = await response.json();
         const reply = data.choices?.[0]?.message?.content || "No response.";
         responseBox.textContent = reply;
@@ -187,51 +185,6 @@
       }
     }
 
-    async function handleImageFor4o(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const preview = document.getElementById("preview");
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const imageUrl = e.target.result;
-        preview.src = imageUrl;
-        preview.style.display = "block";
-
-        const prompt = prompt("What do you want to ask about this image?");
-        if (!prompt) return;
-
-        const responseBox = document.getElementById("response");
-        responseBox.textContent = "Analyzing image...";
-
-        try {
-          const res = await fetch("https://4oimageapi.io/analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              image_url: imageUrl,
-              prompt: prompt
-            })
-          });
-          const data = await res.json();
-          responseBox.textContent = data.response || "No response received.";
-        } catch (err) {
-          console.error(err);
-          responseBox.textContent = "4oImageAPI failed. Trying OCR...";
-
-          // Fallback to OCR if 4oImageAPI fails
-          try {
-            const result = await Tesseract.recognize(file, "eng");
-            document.getElementById("inputText").value = result.data.text;
-            responseBox.textContent = "Image text extracted via OCR.";
-          } catch (ocrErr) {
-            responseBox.textContent = "OCR also failed.";
-          }
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
     function saveToHistory(content) {
       const history = JSON.parse(localStorage.getItem("ai_history") || "[]");
       history.push({ page: "AI", content, timestamp: new Date().toISOString() });
@@ -240,22 +193,21 @@
 
     function handleFile(event) {
       const file = event.target.files[0];
-      if (file && file.type.startsWith("image/")) {
-        handleImageFor4o(event);
-      } else if (file) {
-        readFile(file);
-      }
+      if (file) readFile(file);
     }
 
     function handleDrop(event) {
       event.preventDefault();
       const file = event.dataTransfer.files[0];
-      if (file && file.type.startsWith("image/")) {
-        const fakeEvent = { target: { files: [file] } };
-        handleImageFor4o(fakeEvent);
-      } else {
-        readFile(file);
-      }
+      if (file) readFile(file);
+    }
+
+    function handleImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      Tesseract.recognize(file, "eng").then(({ data: { text } }) => {
+        document.getElementById("inputText").value = text;
+      });
     }
 
     function readFile(file) {
