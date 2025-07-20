@@ -159,13 +159,11 @@
             "Authorization": `Bearer ${API_KEY}`,
           },
           body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: [
-              { role: "system", content: "You are a helpful AI assistant." },
-              { role: "user", content: text }
-            ],
-            temperature: 0.7,
-            max_tokens: 1000
+            inputs: text,
+            parameters: {
+              temperature: 0.7,
+              max_new_tokens: 1000
+            }
           })
         });
 
@@ -176,7 +174,7 @@
         }
 
         const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content || "No response.";
+        const reply = data?.[0]?.generated_text || "No response.";
         responseBox.textContent = reply;
         saveToHistory("AI: " + reply);
       } catch (err) {
