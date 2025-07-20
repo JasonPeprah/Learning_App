@@ -4,133 +4,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Learning AI - Home</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
-  <style>
-    :root {
-      --primary-color: #ffffff;
-      --secondary-color: #1a73e8;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--primary-color);
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      line-height: 1.6;
-      font-size: 1rem;
-    }
-
-    header {
-      background-color: var(--secondary-color);
-      color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .tabs {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .tabs a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.05rem;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem;
-    }
-
-    .card {
-      background: #fff;
-      width: 100%;
-      max-width: 700px;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    textarea {
-      width: 100%;
-      height: 150px;
-      padding: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 0.5rem;
-      resize: vertical;
-      font-family: inherit;
-      font-size: 1rem;
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    button,
-    label {
-      padding: 0.6rem 1.2rem;
-      border: none;
-      border-radius: 0.5rem;
-      background-color: var(--secondary-color);
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .response {
-      white-space: pre-wrap;
-      border-top: 1px solid #ddd;
-      margin-top: 1rem;
-      padding-top: 1rem;
-      font-size: 1.05rem;
-    }
-
-    .preview {
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .preview img,
-    .preview .file-name {
-      max-width: 100%;
-      border-radius: 0.5rem;
-    }
-  </style>
+  <title>AI - Learning AI</title>
+  <link rel="stylesheet" href="css/Learning_AI_Styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 </head>
 
-<body ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+<body>
   <header>
-    <div><strong>Learning AI</strong></div>
-    <nav class="tabs">
-      <a href="index.html">AI</a>
+    <h1>Learning AI</h1>
+    <nav>
+      <a href="index.html" class="active">AI</a>
       <a href="Learning_AI_Notes.html">Notes</a>
       <a href="Learning_AI_Questions.html">Questions</a>
       <a href="Learning_AI_Settings.html">Settings</a>
@@ -138,118 +21,92 @@
   </header>
 
   <main>
-    <div class="card">
-      <textarea id="inputText" placeholder="Ask anything or drop a file..."></textarea>
-      <div class="controls">
-        <button onclick="sendToMistral()">Ask AI</button>
-        <label>
-          Upload File
-          <input type="file" accept=".txt,.pdf,.docx,.pptx,.md,image/*" onchange="handleFile(event)" />
-        </label>
-        <label>
-          Upload Image
-          <input type="file" accept="image/*" capture="environment" onchange="handleImage(event)" />
-        </label>
-      </div>
-      <div class="preview" id="preview"></div>
-      <div class="response" id="response"></div>
-    </div>
+    <section class="input-section">
+      <textarea id="user-input" placeholder="Type your question or upload a file or image..."></textarea>
+      <input type="file" id="file-upload" accept=".txt,.pdf,.docx,.pptx,.md,image/*" multiple />
+      <div id="preview-container"></div>
+      <button id="ask-button">Ask AI</button>
+    </section>
+
+    <section class="output-section">
+      <div id="response">Your response will appear here...</div>
+    </section>
   </main>
 
   <script>
-    const API_KEY = "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";
-    let uploadedContent = "";
+    const askButton = document.getElementById("ask-button");
+    const userInput = document.getElementById("user-input");
+    const fileUpload = document.getElementById("file-upload");
+    const responseDiv = document.getElementById("response");
+    const previewContainer = document.getElementById("preview-container");
 
-    async function sendToMistral() {
-      const prompt = document.getElementById("inputText").value.trim();
-      const combinedInput = uploadedContent ? `${prompt}\n\nFile Content:\n${uploadedContent}` : prompt;
-      if (!combinedInput) return;
+    async function handleImage(file) {
+      const image = document.createElement("img");
+      image.src = URL.createObjectURL(file);
+      image.style.maxWidth = "200px";
+      image.style.margin = "10px";
+      previewContainer.appendChild(image);
 
-      saveToHistory("User: " + combinedInput);
-      const responseBox = document.getElementById("response");
-      responseBox.textContent = "Processing... Please wait.";
+      const result = await Tesseract.recognize(file, "eng");
+      userInput.value += "\n" + result.data.text;
+    }
 
-      try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: [
-              { role: "system", content: "You are a helpful AI assistant." },
-              { role: "user", content: combinedInput }
-            ],
-            temperature: 0.7,
-            max_tokens: 1000
-          })
-        });
-
-        if (!response.ok) throw new Error(`Server error: ${await response.text()}`);
-
-        const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content || "No response.";
-        responseBox.textContent = reply;
-        saveToHistory("AI: " + reply);
-
-        // clear image preview and uploaded content after answer is given
-        uploadedContent = "";
-        document.getElementById("preview").innerHTML = "";
-      } catch (err) {
-        responseBox.textContent = `An error occurred: ${err.message}`;
+    async function handleFileUpload(files) {
+      previewContainer.innerHTML = "";
+      for (const file of files) {
+        if (file.type.startsWith("image/")) {
+          await handleImage(file);
+        } else {
+          alert("Currently only image-based input supports processing. Please upload an image file.");
+        }
       }
     }
 
-    function saveToHistory(content) {
-      const history = JSON.parse(localStorage.getItem("ai_history") || "[]");
-      history.push({ page: "AI", content, timestamp: new Date().toISOString() });
-      localStorage.setItem("ai_history", JSON.stringify(history));
-    }
+    fileUpload.addEventListener("change", async (e) => {
+      await handleFileUpload(e.target.files);
+    });
 
-    function handleFile(event) {
-      const file = event.target.files[0];
-      if (file) readFile(file);
-    }
+    document.body.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    });
 
-    function handleDrop(event) {
-      const file = event.dataTransfer.files[0];
-      if (file) readFile(file);
-    }
+    document.body.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      await handleFileUpload(e.dataTransfer.files);
+    });
 
-    function handleImage(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        document.getElementById("preview").innerHTML = `<img src="${reader.result}" alt="Uploaded Image">`;
-      };
-      reader.readAsDataURL(file);
+    askButton.addEventListener("click", async () => {
+      const text = userInput.value.trim();
+      if (!text) {
+        alert("Please enter a question or upload a file.");
+        return;
+      }
 
-      Tesseract.recognize(file, "eng").then(({ data: { text } }) => {
-        uploadedContent = text;
+      responseDiv.innerHTML = "Processing...";
+
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer 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"
+        },
+        body: JSON.stringify({
+          model: "mixtral-8x7b-32768",
+          messages: [
+            { role: "system", content: "You are a helpful AI assistant." },
+            { role: "user", content: text }
+          ]
+        })
       });
-    }
 
-    function readFile(file) {
-      const previewBox = document.getElementById("preview");
-      previewBox.innerHTML = `<div class="file-name">Uploaded: ${file.name}</div>`;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        uploadedContent = e.target.result;
-      };
-      if (file.type === "application/pdf") {
-        alert("PDF detected. Please add PDF parser for full support.");
-      } else {
-        reader.readAsText(file);
-      }
-    }
+      const data = await response.json();
+      const aiMessage = data.choices[0].message.content;
 
-    const primary = localStorage.getItem("primaryColor");
-    const secondary = localStorage.getItem("secondaryColor");
-    if (primary) document.documentElement.style.setProperty("--primary-color", primary);
-    if (secondary) document.documentElement.style.setProperty("--secondary-color", secondary);
+      responseDiv.innerHTML = aiMessage;
+      previewContainer.innerHTML = "";
+      fileUpload.value = "";
+    });
   </script>
 </body>
 
