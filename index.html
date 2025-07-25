@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,14 +11,10 @@
       --secondary-color: #1a73e8;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: "Inter", "Segoe UI", sans-serif;
       background-color: var(--primary-color);
       color: #333;
       min-height: 100vh;
@@ -140,18 +135,18 @@
   </main>
 
   <script>
-    const API_KEY = "dSKwSBDxZy0gQsB6pdK09IBHPqmr8j0pg2v38r3t"; // Cohere API Key
+    const API_KEY = "dSKwSBDxZy0gQsB6pdK09IBHPqmr8j0pg2v38r3t";
 
     async function sendToCohere() {
-      const text = document.getElementById("inputText").value.trim();
-      if (!text) return;
+      const userInput = document.getElementById("inputText").value.trim();
+      if (!userInput) return;
 
-      saveToHistory("User: " + text);
+      saveToHistory("User: " + userInput);
       const responseBox = document.getElementById("response");
       responseBox.textContent = "Thinking...";
 
       try {
-        const response = await fetch("https://api.cohere.ai/v1/generate", {
+        const response = await fetch("https://api.cohere.ai/v1/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -159,12 +154,9 @@
           },
           body: JSON.stringify({
             model: "command-r",
-            prompt: text,
-            max_tokens: 1000,
+            message: userInput,
             temperature: 0.7,
-            k: 0,
-            stop_sequences: [],
-            return_likelihoods: "NONE"
+            max_tokens: 1000
           }),
         });
 
@@ -175,7 +167,7 @@
         }
 
         const data = await response.json();
-        const reply = data.generations?.[0]?.text || "No response.";
+        const reply = data.text || "No response.";
         responseBox.textContent = reply;
         saveToHistory("AI: " + reply);
       } catch (err) {
@@ -221,12 +213,10 @@
       }
     }
 
-    // Apply saved theme
     const primary = localStorage.getItem("primaryColor");
     const secondary = localStorage.getItem("secondaryColor");
     if (primary) document.documentElement.style.setProperty("--primary-color", primary);
     if (secondary) document.documentElement.style.setProperty("--secondary-color", secondary);
   </script>
 </body>
-
 </html>
